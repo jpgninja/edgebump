@@ -24,9 +24,9 @@ const routes = [
     { path: "/trades", component: TradesPage, meta: { requiresAuth: true } },
     { path: "/accounts", component: AccountsPage, meta: { requiresAuth: true } },
     { path: "/dashboard", component: DashboardPage, meta: { requiresAuth: true } },
-    { path: "/learn", component: LearnPage, meta: { requiresAuth: true } },
-    { path: "/learn/edge-roadmap", component: EdgeRoadmap, meta: { requiresAuth: true } },
-    { path: "/learn/edge-warplan", component: EdgeWarplan, meta: { requiresAuth: true } }
+    { path: "/learn", component: LearnPage },
+    { path: "/learn/edge-roadmap", component: EdgeRoadmap },
+    { path: "/learn/edge-warplan", component: EdgeWarplan }
 ]
 
 // Create router instance
