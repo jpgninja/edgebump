@@ -7,6 +7,8 @@ const props = defineProps({
   trade: Object
 })
 
+// Define emits.
+const emit = defineEmits(["saved", "close"])
 
 const form = ref({
   id: null,
@@ -32,32 +34,48 @@ const signals = ref([])
 // Populate form when trade prop changes
 watch(
   () => props.trade,
-  (newTrade) => {
-    if (newTrade) {
+  async (newTrade) => {
+    if (newTrade?.id) {
+      const token = localStorage.getItem("token")
+      const headers = { "Content-Type": "application/json", "Authorization": `Bearer ${token}` }
+      
+      // Fetch full trade with signals + executions
+      const res = await fetch(`http://localhost:3000/api/trades/${newTrade.id}`, { headers })
+      const resData = await res.json()
+
+      // Defensive check.
+      if (!resData || resData.length === 0) {
+        return
+      }
+
+      // Map API response to form structure.
+      const tradeData = resData[0]
+      
       form.value = {
-        id: newTrade.id ?? null,
-        pattern_id: newTrade.pattern_id ?? null,
-        direction: newTrade.direction ?? "long",
-        ticker: newTrade.ticker ?? "",
-        timeframe: newTrade.timeframe ?? "",
-        entry_plan: newTrade.entry_plan ?? "",
-        stop_loss: newTrade.stop_loss ?? "",
-        take_profit: newTrade.take_profit ?? "",
-        leverage: newTrade.leverage ?? "",
-        account_id: newTrade.account_id ?? selectedAccount.value?.id ?? null,
-        notes: newTrade.notes ?? "",
-        signals: (newTrade.signals ?? []).map(s => {
-          const match = signals.value.find(opt => opt.id === s.signal_id)
-          return match ?? { id: s.signal_id, name: s.signal_value ?? s.signal_id }
-        }),
-        executions: newTrade.executions?.length
-          ? newTrade.executions
+        id: tradeData.id,
+        pattern_id: tradeData.pattern_id ?? null,
+        direction: tradeData.direction ?? "long",
+        ticker: tradeData.ticker ?? "",
+        timeframe: tradeData.timeframe ?? "",
+        entry_plan: tradeData.entry_plan ?? "",
+        stop_loss: tradeData.stop_loss ?? "",
+        take_profit: tradeData.take_profit ?? "",
+        leverage: tradeData.leverage ?? "",
+        account_id: tradeData.account_id ?? selectedAccount.value?.id ?? null,
+        notes: tradeData.notes ?? "",
+        signals: (tradeData.signals ?? []).map(s => ({
+          ...s,
+          name: s.name ?? s.signal_value ?? s.signal_id
+        })),
+        executions: tradeData.executions?.length
+          ? tradeData.executions
           : [{ side: "entry", price: "", amount: "", pnl: null }]
       }
     }
   },
   { immediate: true }
 )
+
 
 onMounted(async () => {
   const token = localStorage.getItem("token")
@@ -104,9 +122,13 @@ const submitForm = async () => {
       }))
     }
 
+    const headers = {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${token}`
+    } 
     const res = await fetch(`http://localhost:3000/api/trades/${tradeId}`, {
       method,
-      headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
+      headers,
       body: JSON.stringify(payload)
     })
 
@@ -115,9 +137,10 @@ const submitForm = async () => {
     if (data.success) {
       message.value = "Trade saved successfully!"
       // emit saved event to parent
-      $emit("saved", data.tradeId)
+      emit("saved", data.tradeId)
+
       // auto-close form after short delay
-      setTimeout(() => $emit("close"), 1000)
+      setTimeout(() => emit("close"), 1000)
     } else {
       message.value = `Error: ${data.error || "Unknown error"}`
     }
@@ -135,7 +158,7 @@ const submitForm = async () => {
 
 <template>
   <div class="max-w-5xl mx-auto p-6 bg-gray-800 text-white rounded-2xl shadow-lg">
-    <h2 class="text-2xl font-bold mb-6">Log/Edit Trade</h2>
+    <h2 class="text-2xl font-bold mb-6">Edit Trade</h2>
 
     <form @submit.prevent="submitForm" class="space-y-6">
 
@@ -148,14 +171,14 @@ const submitForm = async () => {
             <option v-for="p in patterns" :key="p.id" :value="p.id">{{ p.name }}</option>
           </select>
         </div>
-      </div>
-
-      <!-- Pair & Direction -->
-      <div class="grid grid-cols-3 gap-4">
         <div>
           <label class="block text-sm mb-1">Ticker</label>
           <input v-model="form.ticker" type="text" class="w-full p-2 rounded-lg bg-gray-700 border border-gray-600" />
         </div>
+      </div>
+
+      <!-- Pair & Direction -->
+      <div class="grid grid-cols-3 gap-4">
         <div>
           <label class="block text-sm mb-1">Timeframe</label>
           <input v-model="form.timeframe" type="text" class="w-full p-2 rounded-lg bg-gray-700 border border-gray-600" />
@@ -166,6 +189,10 @@ const submitForm = async () => {
             <option value="long">Long</option>
             <option value="short">Short</option>
           </select>
+        </div>
+        <div>
+          <label class="block text-sm mb-1">Leverage</label>
+          <input v-model="form.leverage" type="number" step="1" class="w-full p-2 rounded-lg bg-gray-700 border border-gray-600"/>
         </div>
       </div>
 
@@ -184,8 +211,8 @@ const submitForm = async () => {
           <input v-model="form.take_profit" type="number" step="0.01" class="w-full p-2 rounded-lg bg-gray-700 border border-gray-600"/>
         </div>
         <div>
-          <label class="block text-sm mb-1">Leverage</label>
-          <input v-model="form.leverage" type="number" step="1" class="w-full p-2 rounded-lg bg-gray-700 border border-gray-600"/>
+          <span class="block text-sm mb-1">R:R</span>
+          <input disabled="true" :value="((form.take_profit - form.entry_plan) / (form.entry_plan - form.stop_loss)).toFixed(2)" type="number" step="0.01" class="w-full p-2 rounded-lg bg-gray-800"/>
         </div>
       </div>
 

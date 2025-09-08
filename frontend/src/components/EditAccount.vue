@@ -126,14 +126,14 @@ const submitForm = async () => {
       <!-- Leverage -->
       <div>
         <label class="block text-sm mb-1">Leverage</label>
-        <input v-model="form.leverage" type="number" step="0.01"
+        <input v-model="form.leverage" type="number" step="1"
           class="w-full p-2 rounded-lg bg-gray-700 border border-gray-600" />
       </div>
 
       <!-- Max Risk % -->
       <div>
-        <label class="block text-sm mb-1">Max Risk % per Trade</label>
-        <input v-model="form.max_risk_percent" type="number" step="0.01"
+        <label class="block text-sm mb-1">Max Account Risk % per Trade</label>
+        <input v-model="form.max_risk_percent" type="number" step="0.1"
           class="w-full p-2 rounded-lg bg-gray-700 border border-gray-600" />
       </div>
 
