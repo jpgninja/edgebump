@@ -1,6 +1,6 @@
 <template>
   <div class="w-full max-w-md">
-    <div class="relative w-full h-4 bg-gray-800 rounded overflow-hidden">
+    <div class="relative w-full h-4 rounded overflow-hidden bg-gray-600">
       <div
         class="h-full transition-all duration-300"
         :class="barColor"

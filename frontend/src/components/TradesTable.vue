@@ -26,13 +26,27 @@ onMounted(async () => {
     "Authorization": `Bearer ${token}`
   }
 
-  const tRes = await fetch(`http://localhost:3000/api/trades/${selectedAccount.value.id}`, { headers })
-  trades.value = await tRes.json()
+  // Fetch trades for the current account.
+  await fetchTrades()
 
+  // Fetch available signals for confluences  
   const sRes = await fetch("http://localhost:3000/api/signals", { headers })
   signals.value = await sRes.json()
 })
 
+/**
+ * Fetches all trades for the current account and updates the trades
+ * reactive state.
+ */
+ const fetchTrades = async () => {
+  const token = localStorage.getItem("token")
+  const headers = {
+    "Content-Type": "application/json",
+    "Authorization": `Bearer ${token}`
+  }
+  const tRes = await fetch(`http://localhost:3000/api/trades/${selectedAccount.value.id}`, { headers })
+  trades.value = await tRes.json()
+}
 
 const editTrade = (trade) => {
   selectedTrade.value = trade
@@ -46,7 +60,7 @@ const closeForm = () => {
 }
 
 const handleSaved = async () => {
-  await fetchPatterns()
+  await fetchTrades()
   closeForm()
 }
 
@@ -103,7 +117,7 @@ const deleteTrade = async (id) => {
               :entry="trade.avg_entry"
               :tp="trade.take_profit"
               :sl="trade.stop_loss"
-              :currentPrice="14"
+              :currentPrice="trade.avg_entry + (trade.take_profit-trade.avg_entry) * (Math.random() * (0.920 - 0.4200) + 0.4200).toFixed(3) * (trade.direction === 'long' ? 1 : -1)"
             />
           </td>
           <td class="p-2 border-b border-gray-600">
