@@ -1,0 +1,27 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html {
+    font-size: 0.9em
+}
+
+.multiselect__tag {
+    @apply bg-purple-600 text-white rounded-lg px-2 py-1 mr-2 mb-1 text-sm;
+}
+.multiselect__select {
+  @apply border border-gray-600 bg-gray-800 text-white rounded-lg shadow-md;
+}
+
+.multiselect__input {
+    @apply bg-gray-800 text-white text-sm m-1 p-2 rounded-lg border border-gray-600 shadow-md;
+}
+.multiselect__content-wrapper {
+    @apply bg-gray-800 text-sm rounded-lg border border-gray-600 shadow-md;
+}
+.multiselect__option {
+    @apply p-1 rounded-lg text-white;
+}
+.multiselect__option--highlight {
+    @apply bg-purple-600 cursor-pointer;
+}
