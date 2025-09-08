@@ -12,17 +12,17 @@ export default (dbPromise) => {
     try {
       const db = await dbPromise
       const userId = req.user?.id
-      const tradeId = parseInt(req.params.id)
+      const accountId = parseInt(req.params.id)
 
       if (!userId) return res.status(401).json({ error: "Unauthorized" })
-      if (!tradeId) return res.status(400).json({ error: "trade_id is required" })
+      if (!accountId) return res.status(400).json({ error: "account_id is required" })
 
       // Fetch summarized trades
       const trades = await db.all(
         `SELECT * FROM v_trade_summary 
-        WHERE user_id=? AND id=?
+        WHERE user_id=? AND account_id=?
         ORDER BY created_at DESC`,
-        [userId, tradeId]
+        [userId, accountId]
       )
 
       if (!trades || trades.length === 0) return res.json([])
@@ -164,8 +164,11 @@ export default (dbPromise) => {
       // 1. Update trade
       // -------------------------
       const keys = ["account_id", ...Object.keys(tradeData)];
+      console.log("Trade update keys:", keys);
       const assignments = keys.map(k => `${k}=?`).join(",");
+      console.log("Trade update assignments:", assignments);
       const values = [account_id, ...Object.values(tradeData), id, userId];
+      console.log("Trade update values:", values);
       await db.run(`UPDATE trades SET ${assignments} WHERE id=? AND user_id=?`, values);
 
       // -------------------------
@@ -177,6 +180,7 @@ export default (dbPromise) => {
           `INSERT INTO trade_signals (trade_id, signal_id, type, "order", signal_value) VALUES (?,?,?,?,?)`
         );
         for (const [i, sig] of signals.entries()) {
+          console.log("Inserting signal:", sig, i);
           await stmt.run(
             id,
             sig.signal_id,
@@ -192,11 +196,13 @@ export default (dbPromise) => {
       // 3. Upsert executions
       // -------------------------
       await db.run("DELETE FROM trade_executions WHERE trade_id=?", id);
+      console.log("Executions to insert:", executions);
       if (executions.length > 0) {
         const stmt = await db.prepare(
           `INSERT INTO trade_executions (trade_id, side, price, amount, pnl) VALUES (?,?,?,?,?)`
         );
         for (const exec of executions) {
+          console.log("Inserting execution:", exec);
           await stmt.run(
             id,
             exec.side ?? "entry",

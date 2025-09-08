@@ -10,6 +10,7 @@
             <AddTradeButton />
         </h1>
         <TradesTable />
+
         <h1 class="text-3xl text-white font-bold mb-6">Recent Trades</h1>
         <TradesTable />
     </div>

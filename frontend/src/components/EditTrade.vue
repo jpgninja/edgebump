@@ -92,7 +92,8 @@ onMounted(async () => {
 const addExecution = (side, price = "", amount = "") => {
   form.value.executions.push({ side, price, amount, pnl: null })
 }
-
+ console.log(form.value);
+ console.log(form.value.executions);
 // Remove an execution
 const removeExecution = (index) => form.value.executions.splice(index, 1)
 
