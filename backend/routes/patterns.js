@@ -4,15 +4,41 @@ export default (dbPromise) => {
   const router = express.Router()
 
   // Get all patterns for the logged-in user
+// Get all patterns with rules for the logged-in user
   router.get("/", async (req, res) => {
     try {
       const db = await dbPromise
+
+      // 1. Get all active patterns for the user
       const patterns = await db.all(
-        "SELECT id, name, description FROM patterns WHERE user_id = ?",
+        "SELECT id, name, description FROM patterns WHERE user_id = ? AND status = 'active'",
         [req.user.id]
       )
-      res.json(patterns)
+
+      // 2. Get all rules for these patterns
+      const patternIds = patterns.map(p => p.id)
+      let rules = []
+      if (patternIds.length > 0) {
+        const placeholders = patternIds.map(() => "?").join(",")
+        rules = await db.all(
+          `SELECT ps.pattern_id, ps.signal_id, ps.type, ps."order", s.name AS signal_name
+          FROM pattern_signals ps
+          LEFT JOIN signals s ON ps.signal_id = s.id
+          WHERE ps.pattern_id IN (${placeholders})
+          ORDER BY ps.pattern_id, ps."order"`,
+          patternIds
+        )
+      }
+
+      // 3. Nest rules under their patterns
+      const patternsWithRules = patterns.map(p => ({
+        ...p,
+        rules: rules.filter(r => r.pattern_id === p.id)
+      }))
+
+      res.json(patternsWithRules)
     } catch (err) {
+      console.error("GET /api/patterns error:", err)
       res.status(500).json({ success: false, error: err.message })
     }
   })
@@ -67,7 +93,6 @@ export default (dbPromise) => {
     }
   })
 
-
   // Update pattern
   router.put("/:id", async (req, res) => {
     const { name, description, rules = [] } = req.body
@@ -77,12 +102,45 @@ export default (dbPromise) => {
     try {
       const db = await dbPromise
 
+      // Get current pattern
+      const current = await db.get("SELECT name, description FROM patterns WHERE id = ? AND user_id = ?", [patternId, userId])
+      if (!current) {
+        return res.status(404).json({
+          success: false,
+          error: "Pattern not found" 
+        })
+      }
+
+      // Prepare update fields
+      const fields = []
+      const values = []
+
+      if (req.body.name && req.body.name !== current.name) {
+        fields.push("name = ?")
+        values.push(req.body.name)
+      }
+
+      // Always update description (or do similar check)
+      if (req.body.description !== undefined) {
+        fields.push("description = ?")
+        values.push(req.body.description)
+      }
+
+      if (fields.length === 0) {
+        return res.json({ success: true }) // nothing to update
+      }
+
+      // Append WHERE clause values
+      values.push(req.params.id)
+
+      // Run update
+      
       // -------------------------
       // 1. Update pattern
       // -------------------------
       const result = await db.run(
-        "UPDATE patterns SET name = ?, description = ? WHERE id = ? AND user_id = ?",
-        [name, description, patternId, userId]
+        `UPDATE patterns SET ${fields.join(", ")} WHERE id = ? AND user_id = ?`,
+        [...values, userId]
       )
       if (result.changes === 0) {
         return res.status(404).json({ success: false, error: "Pattern not found or not owned by user" })
@@ -115,7 +173,6 @@ export default (dbPromise) => {
     }
   })
 
-
   // Soft-delete pattern
   router.delete("/:id", async (req, res) => {
     const patternId = req.params.id
@@ -138,7 +195,6 @@ export default (dbPromise) => {
       res.status(500).json({ success: false, error: err.message })
     }
   })
-
 
   return router
 }

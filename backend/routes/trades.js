@@ -8,21 +8,21 @@ import { calculateTradeMetrics } from "../utils/tradeMetrics.js"
 export default (dbPromise) => {
   const router = express.Router()
 
-  router.get("/:account_id", async (req, res) => {
+  router.get("/:id", async (req, res) => {
     try {
       const db = await dbPromise
       const userId = req.user?.id
-      const accountId = parseInt(req.params.account_id)
+      const tradeId = parseInt(req.params.id)
 
       if (!userId) return res.status(401).json({ error: "Unauthorized" })
-      if (!accountId) return res.status(400).json({ error: "account_id is required" })
+      if (!tradeId) return res.status(400).json({ error: "trade_id is required" })
 
       // Fetch summarized trades
       const trades = await db.all(
         `SELECT * FROM v_trade_summary 
-        WHERE user_id=? AND account_id=?
+        WHERE user_id=? AND id=?
         ORDER BY created_at DESC`,
-        [userId, accountId]
+        [userId, tradeId]
       )
 
       if (!trades || trades.length === 0) return res.json([])
