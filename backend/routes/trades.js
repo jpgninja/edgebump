@@ -1,28 +1,22 @@
 import express from "express"
-import { calculateTradeMetrics } from "../utils/tradeMetrics.js"
-
-// SELECT * FROM v_trade_summary
-
-
 
 export default (dbPromise) => {
   const router = express.Router()
 
-  router.get("/:id", async (req, res) => {
+  // Select all trades for the authenticated user.
+  router.get("/", async (req, res) => {
     try {
       const db = await dbPromise
       const userId = req.user?.id
-      const accountId = parseInt(req.params.id)
 
       if (!userId) return res.status(401).json({ error: "Unauthorized" })
-      if (!accountId) return res.status(400).json({ error: "account_id is required" })
 
       // Fetch summarized trades
       const trades = await db.all(
-        `SELECT * FROM v_trade_summary 
-        WHERE user_id=? AND account_id=?
+        `SELECT * FROM v_trade_summary
+        WHERE user_id=?
         ORDER BY created_at DESC`,
-        [userId, accountId]
+        [userId]
       )
 
       if (!trades || trades.length === 0) return res.json([])
@@ -61,6 +55,72 @@ export default (dbPromise) => {
     }
   })
 
+  // Select a specific trade by ID for the authenticated user.
+  router.get("/:id", async (req, res) => {
+    try {
+      const db = await dbPromise
+      const userId = req.user?.id
+      const tradeId = parseInt(req.params.id)
+
+      if (!userId) return res.status(401).json({ error: "Unauthorized" })
+      if (!tradeId) return res.status(400).json({ error: "account_id is required" })
+
+      // Fetch summarized trades
+      const trades = await db.all(
+        `SELECT * FROM v_trade_summary
+        WHERE user_id=? AND id=?
+        ORDER BY created_at DESC`,
+        [userId, tradeId]
+      )
+
+      if (!trades || trades.length === 0) return res.json([])
+
+      // Fetch signals
+      const ids = trades.map(t => t.id)
+      const placeholders = ids.map(() => "?").join(',')
+      const tradeSignals = await db.all(
+        `SELECT ts.trade_id, ts.type, ts."order", ts.signal_value,
+                s.id AS signal_id, s.name AS signal_name
+        FROM trade_signals ts
+        JOIN signals s ON ts.signal_id = s.id
+        WHERE ts.trade_id IN (${placeholders})
+        ORDER BY ts.trade_id, ts."order" ASC`,
+        ids
+      )
+
+      // Map signals to trades
+      const tradeMap = new Map()
+      trades.forEach(t => tradeMap.set(t.id, { ...t, signals: [] }))
+      for (const sig of tradeSignals) {
+        const entry = tradeMap.get(sig.trade_id)
+        if (entry) entry.signals.push({
+          id: sig.signal_id,
+          name: sig.signal_name,
+          value: sig.signal_value,
+          type: sig.type,
+          order: sig.order
+        })
+      }
+
+      // Fetch executions
+      const tradeExecutions = await db.all(
+        `SELECT * FROM trade_executions
+        WHERE trade_id=?
+        ORDER BY created_at ASC`,
+        [tradeId]
+      )
+
+      // Map executions to trades
+      tradeMap.get(tradeId).executions = tradeExecutions
+
+      res.json(Array.from(tradeMap.values()))
+    } catch (err) {
+      console.error("GET /api/trades error:", err)
+      res.status(500).json({ error: "Failed to load trades" })
+    }
+  })
+
+  // Create or update a trade.
   router.post("/:id", async (req, res) => {
     const db = await dbPromise
     const userId = req.user.id
@@ -142,6 +202,7 @@ export default (dbPromise) => {
     }
   })
 
+  // Update a trade.
   router.put("/:id", async (req, res) => {
     const db = await dbPromise;
     const userId = req.user.id;
@@ -221,6 +282,7 @@ export default (dbPromise) => {
     }
   });
 
+  // Soft delete a trade.
   router.delete("/:id", async (req, res) => {
     const db = await dbPromise;
     const userId = req.user.id;
@@ -251,7 +313,6 @@ export default (dbPromise) => {
       res.status(500).json({ success: false, error: err.message });
     }
   });
-
 
   return router
 }
