@@ -9,6 +9,7 @@ export const jwtAuth = (req, res, next) => {
   const authHeader = req.headers["authorization"]
   if (!authHeader?.startsWith("Bearer ")) return res.status(401).json({ error: "Invalid auth token" })
   const token = authHeader.split(" ")[1]
+  if (!token || !JWT_SECRET) return res.status(401).json({ error: "Missing auth token or secret" })
   try {
     req.user = jwt.verify(token, JWT_SECRET)
     next()
