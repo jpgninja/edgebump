@@ -38,7 +38,7 @@ watch(
     if (newTrade?.id) {
       const token = localStorage.getItem("token")
       const headers = { "Content-Type": "application/json", "Authorization": `Bearer ${token}` }
-      
+
       // Fetch full trade with signals + executions
       const res = await fetch(`http://localhost:3000/api/trades/${newTrade.id}`, { headers })
       const resData = await res.json()
@@ -50,7 +50,6 @@ watch(
 
       // Map API response to form structure.
       const tradeData = resData[0]
-      
       form.value = {
         id: tradeData.id,
         pattern_id: tradeData.pattern_id ?? null,
@@ -92,11 +91,11 @@ onMounted(async () => {
 const addExecution = (side, price = "", amount = "") => {
   form.value.executions.push({ side, price, amount, pnl: null })
 }
- console.log(form.value);
- console.log(form.value.executions);
+
 // Remove an execution
 const removeExecution = (index) => form.value.executions.splice(index, 1)
 
+// Submit form.
 const submitForm = async () => {
   saving.value = true
   message.value = ""
@@ -152,8 +151,6 @@ const submitForm = async () => {
     saving.value = false
   }
 }
-
-
 </script>
 
 
