@@ -44,7 +44,7 @@ onMounted(async () => {
     "Content-Type": "application/json",
     "Authorization": `Bearer ${token}`
   }
-  const tRes = await fetch(`http://localhost:3000/api/trades/${selectedAccount.value.id}`, { headers })
+  const tRes = await fetch(`http://localhost:3000/api/trades`, { headers })
   trades.value = await tRes.json()
 }
 
