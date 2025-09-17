@@ -14,6 +14,7 @@ const submitForm = async () => {
   if ((data.token)) {
     login(data.token)
     console.log("User logged in")
+    window.location.href = "/dashboard"
   } else {
     console.error(data.error)
   }
