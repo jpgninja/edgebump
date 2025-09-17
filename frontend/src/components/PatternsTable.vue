@@ -33,11 +33,6 @@ const fetchPatterns = async () => {
 }
 
 
-const editPattern = (pattern) => {
-  selectedPattern.value = pattern
-  showForm.value = true
-}
-
 const closeForm = () => {
   showForm.value = false
   selectedPattern.value = null
@@ -77,18 +72,33 @@ const deletePattern = async (id) => {
           <th class="text-left p-2 border-b border-gray-600">Pattern</th>
           <th class="text-left p-2 border-b border-gray-600">Confluences</th>
           <th class="text-left p-2 border-b border-gray-600">Win Rate</th>
+          <th class="text-left p-2 border-b border-gray-600">Trades</th>
+          <th class="text-left p-2 border-b border-gray-600">Expected Return</th>
+
           <th class="text-left p-2 border-b border-gray-600"></th>
         </tr>
       </thead>
       <tbody>
         <tr v-for="pattern in patterns" :key="pattern.id">
           <td class="p-2 border-b border-gray-600">{{ pattern.name }}</td>
-          <td class="p-2 border-b border-gray-600">pattern confluences</td>
-          <td class="p-2 border-b border-gray-600">34%</td>
+          <td class="p-2 border-b border-gray-600">
+            <ul class="flex flex-wrap gap-2">
+              <li
+                v-for="signal in pattern.rules"
+                :key="signal.signal_id"
+                class="bg-blue-900 text-blue-100 text-xs font-medium px-2 py-1 rounded-sm"
+              >
+                {{ signal.signal_name }}
+              </li>
+            </ul>
+          </td>
+          <td class="p-2 border-b border-gray-600">{{ pattern.win_rate ?? "0%" }}</td>
+          <td class="p-2 border-b border-gray-600">{{ pattern.trade_count ?? 0 }}</td>
+          <td class="p-2 border-b border-gray-600">{{ pattern.expected_return ?? 0 }}</td>
           <td class="p-2 border-b border-gray-600 space-x-2">
-            <button @click="editPattern(pattern)" class="px-2 py-1 bg-blue-900 hover:bg-blue-800 rounded text-sm">
+            <router-link :to="{ name: 'pattern_edit', params: {id:pattern.id }}" :id="pattern.id" class="px-2 py-1 bg-blue-900 hover:bg-blue-800 rounded text-sm">
               Edit
-            </button>
+            </router-link>
             <button @click="deletePattern(pattern.id)" class="px-2 py-1 bg-red-900 hover:bg-red-800 rounded text-sm">
               Delete
             </button>

@@ -11,9 +11,22 @@ export default (dbPromise) => {
 
       // 1. Get all active patterns for the user
       const patterns = await db.all(
-        "SELECT id, name, description FROM patterns WHERE user_id = ? AND status = 'active'",
+        `
+        SELECT 
+          p.id,
+          p.name,
+          p.description,
+          (
+            SELECT COUNT(*)
+            FROM trades t
+            WHERE t.pattern_id = p.id
+          ) AS trade_count
+        FROM patterns p
+        WHERE p.user_id = ? AND p.status = 'active'
+        `,
         [req.user.id]
       )
+
 
       // 2. Get all rules for these patterns
       const patternIds = patterns.map(p => p.id)
