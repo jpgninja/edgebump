@@ -1,7 +1,7 @@
 <script setup>
   import { ref, onMounted } from "vue"
   import { RouterLink, RouterView } from "vue-router"
-  import { isLoggedIn, logout } from "./stores/auth"
+  import { isLoggedIn, token } from "./stores/auth"
   import { selectedAccount } from "./stores/account"
   import { selectAccount } from "./stores/account"
    
@@ -33,14 +33,15 @@
   })
 
   const fetchAccounts = async () => {
-  const token = localStorage.getItem("token")
-  const headers = {
-      "Content-Type": "application/json",
-      "Authorization": `Bearer ${token}`
-  }
+    const headers = {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token.value}`
+    }
 
-  const res = await fetch("http://localhost:3000/api/accounts", { headers })
-    accounts.value = await res.json()
+    if (isLoggedIn.value) {
+      const res = await fetch("http://localhost:3000/api/accounts", { headers })
+      accounts.value = await res.json()
+    }
   }
 </script>
 
@@ -49,10 +50,10 @@
     <!-- Header -->
     <header class="bg-gray-800 shadow p-4 flex justify-between items-center">
       <h1 class="text-xl font-bold">
-        <RouterLink v-if="!isLoggedIn" to="/" class="">📈 TradeStack</RouterLink>
-        <RouterLink v-else to="/dashboard" class="">📈 TradeStack</RouterLink>
+        <RouterLink v-if="!isLoggedIn" to="/" class="">📈 EdgeBump</RouterLink>
+        <RouterLink v-else to="/dashboard" class="">📈 EdgeBump</RouterLink>
       </h1>
-      <select class="p-2 rounded-md bg-gray-700 border border-gray-600" v-model="selectedAccount.id" @change="selectAccount(accounts.find(a => a.id === selectedAccount.id))">
+      <select v-if="isLoggedIn" class="p-2 rounded-md bg-gray-700 border border-gray-600" v-model="selectedAccount.id" @change="selectAccount(accounts.find(a => a.id === selectedAccount.id))">
         <option disabled value="">Select Account</option>
         <option v-for="a in accounts" :key="a.id" :value="a.id" :selected="a.id === selectedAccount.id">{{ a.name }}</option>
       </select>

@@ -11,6 +11,25 @@ const JWT_SECRET = process.env.JWT_SECRET || "JWT_TOKEN_DEFAULT_VALUE"
 export default (dbPromise) => {
     const router = express.Router()
 
+    router.post("/verify", async (req, res) => {
+        const authHeader = req.headers["authorization"]
+        if (!authHeader?.startsWith("Bearer ")) {
+            return res.status(401).json({ error: "Invalid auth token" })
+        }
+
+        const token = authHeader.split(" ")[1]
+        if (!token) {
+            return res.status(401).json({ error: "Invalid auth token" })
+        }
+
+        try {
+            const decoded = jwt.verify(token, JWT_SECRET)
+            return res.json({ ok: true, decoded })
+        } catch (err) {
+            return res.status(401).json({ ok: false })
+        }
+    })
+
     router.post("/register", async (req, res) => {
         const { username, password, email } = req.body
         const hashed = await bcrypt.hash(password, 10)
@@ -40,7 +59,6 @@ export default (dbPromise) => {
             return res.status(500).json({ error: "Internal server error" })
         }
     })
-
 
     return router
 }
