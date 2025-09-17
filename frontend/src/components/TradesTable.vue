@@ -97,7 +97,7 @@ const deleteTrade = async (id) => {
         <tr>
           <th class="text-left p-2 border-b border-gray-600">Date</th>
           <th class="text-left p-2 border-b border-gray-600">Pattern</th>
-          <th class="text-left p-2 border-b border-gray-600">Symbol</th>
+          <th class="text-left p-2 border-b border-gray-600">Ticker</th>
           <th class="text-left p-2 border-b border-gray-600">Direction</th>
           <th class="text-left p-2 border-b border-gray-600">Entry</th>
           <th class="text-left p-2 border-b border-gray-600">Progress</th>
@@ -109,7 +109,7 @@ const deleteTrade = async (id) => {
         <tr v-for="trade in trades" :key="trade.id">
           <td class="p-2 border-b border-gray-600">Nov 13</td>
           <td class="p-2 border-b border-gray-600">{{ trade.pattern_name }}</td>
-          <td class="p-2 border-b border-gray-600">{{ trade.symbol }}</td>
+          <td class="p-2 border-b border-gray-600">{{ trade.ticker.toUpperCase() }}</td>
           <td class="p-2 border-b border-gray-600">{{ trade.direction }}</td>
           <td class="p-2 border-b border-gray-600">{{ trade.avg_entry }}</td>
           <td class="p-2 border-b border-gray-600">
