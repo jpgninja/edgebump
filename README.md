@@ -1,4 +1,4 @@
-# TradeStack
+# EdgeBump
 
 ## Setup DB.
 
