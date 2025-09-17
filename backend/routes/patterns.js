@@ -4,7 +4,6 @@ export default (dbPromise) => {
   const router = express.Router()
 
   // Get all patterns for the logged-in user
-// Get all patterns with rules for the logged-in user
   router.get("/", async (req, res) => {
     try {
       const db = await dbPromise
@@ -57,12 +56,47 @@ export default (dbPromise) => {
   })
 
   // Get single pattern
+  // Get single pattern
   router.get("/:id", async (req, res) => {
-    const db = await dbPromise
-    const pattern = await db.get("SELECT * FROM patterns WHERE id = ?", [req.params.id])
-    if (!pattern) return res.status(404).json({ error: "Pattern not found" })
-    res.json(pattern)
+    try {
+      const db = await dbPromise
+
+      // Fetch the main pattern
+      const pattern = await db.get(
+        "SELECT * FROM patterns WHERE id = ?",
+        [req.params.id]
+      )
+      if (!pattern) return res.status(404).json({ error: "Pattern not found" })
+
+      // Fetch associated rules/signals
+      const rules = await db.all(
+        `SELECT ps.id as pattern_signal_id,
+                ps.type,
+                ps."order",
+                s.id as signal_id,
+                s.name as signal_name,
+                s.description as signal_description,
+                s.value_type
+        FROM pattern_signals ps
+        JOIN signals s ON ps.signal_id = s.id
+        WHERE ps.pattern_id = ?
+        ORDER BY ps."order" ASC`,
+        [pattern.id]
+      )
+
+      // Combine pattern + rules into one object
+      const response = {
+        ...pattern,
+        rules
+      }
+
+      res.json(response)
+    } catch (err) {
+      console.error(err)
+      res.status(500).json({ error: "Internal server error" })
+    }
   })
+
 
   // Create or update pattern
   router.post("/", async (req, res) => {
