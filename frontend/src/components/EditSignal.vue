@@ -1,13 +1,13 @@
 <script setup>
 import { ref } from "vue"
-
+import { token } from "../stores/auth"
 const form = ref({ name: "", description: "" })
 
 const submitForm = async () => {
   try {
     const res = await fetch("http://localhost:3000/api/signals", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
       body: JSON.stringify(form.value)
     })
     const data = await res.json()
