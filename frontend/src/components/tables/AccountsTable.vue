@@ -1,8 +1,8 @@
 <script setup>
 import { ref, onMounted } from "vue"
-import EditAccount from "./EditAccount.vue"
+import EditAccount from "../EditAccount.vue"
 
-import { selectAccount, selectedAccount } from "../stores/account.js"
+import { selectAccount, selectedAccount } from "../../stores/account.js"
 
 const accounts = ref([])
 const showForm = ref(false)

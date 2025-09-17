@@ -13,14 +13,14 @@
         const res = await fetch(`http://localhost:3000/api/patterns/${props.id}`, { headers })
         pattern.value = await res.json()
     })
-    import EditPatternButton from "../components/EditPatternButton.vue";
+    import EditControlButton from "../components/buttons/EditControlButton.vue";
 </script>
 
 <template>
     <div class="max-w-3xl mx-auto p-6">
         <h1 class="text-3xl text-white font-bold mb-6">
             {{ pattern.name }}
-            <EditPatternButton />
+            <EditControlButton />
         </h1>
 
         <p>{{ pattern.description }}</p>

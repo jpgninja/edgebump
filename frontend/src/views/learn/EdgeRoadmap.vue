@@ -1,116 +1,154 @@
 <script setup>
+import { ref, onMounted } from 'vue';
+import gsap from 'gsap';
+
+// Roadmap steps
+const roadmapSteps = ref([
+  {
+    title: "Build Your Edge via Paper Trading",
+    objective: "Validate your unique trading patterns to determine expectancy, win rate, and R-multiples.",
+    benefit: "Avoid costly mistakes by perfecting your strategy in a risk-free environment.",
+    save: "Save on emotional capital and financial losses by using paper trading as your testing ground.",
+    metrics: [
+      "Win rate per pattern",
+      "Average R-multiple per trade",
+      "Max drawdown",
+      "Frequency of setups per week",
+    ],
+    tip: "Keep a log of contextual confluences including timeframe, ticker, signals, and macro conditions."
+  },
+  {
+    title: "Analyze and Refine",
+    objective: "Make data-driven decisions, turning trading from random shots in the dark into precision forecasting.",
+    benefit: "Save time and ambiguity by refining your strategy with insightful analysis after 50–100 trades.",
+    metrics: [
+      "Average R per pattern",
+      "Probability of hitting TP/SL",
+      "Volatility ranges, refining entry rules, stop placements and leverage resizing."
+    ]
+  },
+  {
+    title: "Start Small with Real Capital",
+    benefit: "Bridge the gap from practice to reality without committing your personal funds, minimizing financial risk.",
+    save: "Protect your personal savings by leveraging prop firm accounts as your launchpad to real trading.",
+    approach: "Trade with minimum risk size, mirroring proven paper trading setups and metrics."
+  },
+  {
+    title: "Gradually Increase Exposure",
+    benefit: "Utilize your refined skills in low-risk settings, gradually scaling exposure based on consistent performance.",
+    save: "Avoid catastrophic losses by maintaining drawdown and scaling only when the edge is proven.",
+    guidelines: [
+      "Keep max drawdown <10–15% of account equity.",
+      "Cycle through multiple prop accounts or slightly increase leverage."
+    ]
+  },
+  {
+    title: "Embrace a Risk Mindset",
+    benefit: "Safeguard your longevity in trading by focusing on steady growth and risk management over thrill-seeking.",
+    save: "Prevent burnout and financial devastation by managing bankrolls over chasing quick wins.",
+    goal: "Doggedly compound small edges, ensuring continued growth and profitability."
+  },
+  {
+    title: "Timeline & Milestones",
+    benefit: "Define your success through clear milestones, motivating disciplined action and encouraging steady progression.",
+    save: "Save on time and prevent wandering off-course by adhering to the timeline tailored to your trading journey.",
+    stages: [
+      "Paper Trading - Validate 2 patterns (50–100 trades per pattern)",
+      "Analysis - Identify edge",
+      "Prop Micro Account - First 1–2 months live (20–50 trades)",
+      "Scaling - Use proven edge on full allocation (50–100 trades per pattern)",
+      "Final Goal - Achieve ~$250k annualized payouts through 2–3 years of disciplined growth"
+    ]
+  }
+]);
+
+onMounted(() => {
+  gsap.utils.toArray('.roadmap-step').forEach((step, i) => {
+    gsap.from(step, {
+      y: 50,
+      opacity: 0,
+      duration: 0.8,
+      delay: i * 0.3,
+      ease: 'power3.out',
+      scrollTrigger: {
+        trigger: step,
+        start: 'top 80%',
+      }
+    });
+  });
+
+  // Animate header & hero text
+  gsap.from('.hero-title', { y: 40, opacity: 0, duration: 1, ease: 'power3.out' });
+  gsap.from('.hero-subtitle', { y: 40, opacity: 0, duration: 1, delay: 0.2, ease: 'power3.out' });
+});
 </script>
 
 <template>
-    <div class="max-w-6xl mx-auto p-8 bg-gray-900 text-white rounded-3xl shadow-xl space-y-8">
-    <h1 class="text-4xl font-bold text-purple-400 mb-4">Trading Edge Roadmap</h1>
-    <p class="text-gray-300 text-lg">A step-by-step guide to validate patterns, manage risk, and scale using prop firm accounts.</p>
+  <div class="min-h-screen bg-gray-900 font-sans text-gray-200">
+    <!-- Hero Section -->
+    <section class="relative bg-gradient-to-r from-purple-700 via-purple-900 to-indigo-900 py-32">
+      <div class="container mx-auto px-6 text-center">
+        <h1 class="hero-title text-5xl md:text-6xl font-bold mb-6 text-white">Unlock Your Trading Success</h1>
+        <p class="hero-subtitle text-lg md:text-xl max-w-3xl mx-auto text-gray-300">
+          Follow the Trading Edge Roadmap to elevate your skills, gain clarity, and achieve real profitability.
+        </p>
+      </div>
+    </section>
 
-    <!-- Step 1 -->
-    <section class="bg-gray-800 p-6 rounded-2xl shadow-md space-y-3">
-        <h2 class="text-2xl font-semibold text-purple-300">1. Build Your Edge via Paper Trading</h2>
-        <ul class="list-disc list-inside text-gray-300 space-y-1">
-        <li>Goal: Validate your patterns and determine expectancy, win rate, and R-multiples.</li>
-        <li>Scale: Start with <strong>50–100 trades per pattern</strong> in paper mode.</li>
-        <li>Metrics to track:
-            <ul class="list-disc list-inside ml-5 text-gray-400">
-            <li>Win rate per pattern</li>
-            <li>Average R-multiple per trade</li>
-            <li>Max drawdown</li>
-            <li>Frequency of setups per week</li>
+    <!-- Roadmap Steps -->
+    <section class="container mx-auto px-6 py-16 space-y-12">
+      <h2 class="text-4xl font-bold text-center text-purple-400 mb-12">Your Step-by-Step Trading Roadmap</h2>
+      
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
+        <div 
+          v-for="(step, idx) in roadmapSteps" 
+          :key="idx" 
+          class="roadmap-step bg-gray-800 rounded-3xl p-10 shadow-2xl hover:scale-[1.02] transition-transform duration-300"
+        >
+          <h3 class="text-2xl font-semibold mb-4 text-indigo-400">{{ step.title }}</h3>
+          <div v-if="step.objective" class="mb-3">
+            <span class="font-semibold">Objective:</span> {{ step.objective }}
+          </div>
+          <div v-if="step.benefit" class="mb-3">
+            <span class="font-semibold">Benefit:</span> {{ step.benefit }}
+          </div>
+          <div v-if="step.save" class="mb-3">
+            <span class="font-semibold">What You Save:</span> {{ step.save }}
+          </div>
+          <div v-if="step.metrics" class="mb-3">
+            <span class="font-semibold">Metrics:</span>
+            <ul class="list-disc ml-6 mt-1">
+              <li v-for="(m, i) in step.metrics" :key="i">{{ m }}</li>
             </ul>
-        </li>
-        <li>Tip: Log <strong>contextual confluences</strong> (timeframe, ticker, signals, macro conditions).</li>
-        </ul>
-    </section>
-
-    <!-- Step 2 -->
-    <section class="bg-gray-800 p-6 rounded-2xl shadow-md space-y-3">
-        <h2 class="text-2xl font-semibold text-purple-300">2. Analyze and Refine</h2>
-        <ul class="list-disc list-inside text-gray-300 space-y-1">
-        <li>Pick patterns with <strong>positive expectancy</strong> after 50–100 trades.</li>
-        <li>Use your trade tracker to generate insights:
-            <ul class="list-disc list-inside ml-5 text-gray-400">
-            <li>Average R per pattern</li>
-            <li>Probability of hitting TP/SL</li>
-            <li>Typical volatility ranges</li>
+          </div>
+          <div v-if="step.tip" class="mb-3 italic text-gray-400">Tip: {{ step.tip }}</div>
+          <div v-if="step.approach" class="mb-3">{{ step.approach }}</div>
+          <div v-if="step.guidelines" class="mb-3">
+            <span class="font-semibold">Guidelines:</span>
+            <ul class="list-disc ml-6 mt-1">
+              <li v-for="(g, i) in step.guidelines" :key="i">{{ g }}</li>
             </ul>
-        </li>
-        <li>Refine entry rules, stop placement, and leverage sizing based on actual data.</li>
-        </ul>
+          </div>
+          <div v-if="step.goal" class="mb-3">
+            <span class="font-semibold">Goal:</span> {{ step.goal }}
+          </div>
+          <div v-if="step.stages" class="mb-3">
+            <span class="font-semibold">Stages to Success:</span>
+            <ul class="list-disc ml-6 mt-1">
+              <li v-for="(s, i) in step.stages" :key="i">{{ s }}</li>
+            </ul>
+          </div>
+        </div>
+      </div>
     </section>
-
-    <!-- Step 3 -->
-    <section class="bg-gray-800 p-6 rounded-2xl shadow-md space-y-3">
-        <h2 class="text-2xl font-semibold text-purple-300">3. Start Small with Real Capital</h2>
-        <ul class="list-disc list-inside text-gray-300 space-y-1">
-        <li>Use a <strong>prop firm account</strong> to trade without risking personal funds.</li>
-        <li>Start at the <strong>minimum allowed risk size</strong> per trade.</li>
-        <li>Only take trades that match your proven setups.</li>
-        <li>Track every metric the same way as paper trading.</li>
-        </ul>
-    </section>
-
-    <!-- Step 4 -->
-    <section class="bg-gray-800 p-6 rounded-2xl shadow-md space-y-3">
-        <h2 class="text-2xl font-semibold text-purple-300">4. Gradually Increase Exposure</h2>
-        <ul class="list-disc list-inside text-gray-300 space-y-1">
-        <li>Once consistent over 20–50 live trades with small capital, increase trade size gradually.</li>
-        <li>Keep max drawdown &lt;10–15% of account equity.</li>
-        <li>Cycle multiple prop accounts or slightly increase leverage once edge is proven.</li>
-        </ul>
-    </section>
-
-    <!-- Step 5 -->
-    <section class="bg-gray-800 p-6 rounded-2xl shadow-md space-y-3">
-        <h2 class="text-2xl font-semibold text-purple-300">5. Risk Mindset</h2>
-        <ul class="list-disc list-inside text-gray-300 space-y-1">
-        <li>Treat prop payouts as <strong>business income</strong>, not personal.</li>
-        <li>Goal: <strong>compound small edges over time</strong>, not hit home runs weekly.</li>
-        <li>Protect your bankroll first, optimize P&L second.</li>
-        </ul>
-    </section>
-
-    <!-- Step 6 -->
-    <section class="bg-gray-800 p-6 rounded-2xl shadow-md space-y-3">
-        <h2 class="text-2xl font-semibold text-purple-300">6. Timeline & Milestones</h2>
-        <table class="w-full text-left text-gray-300 border border-gray-600 rounded-lg">
-        <thead class="bg-gray-700">
-            <tr>
-            <th class="p-2 border-b border-gray-600">Stage</th>
-            <th class="p-2 border-b border-gray-600">Milestone</th>
-            <th class="p-2 border-b border-gray-600">Approx Trades</th>
-            </tr>
-        </thead>
-        <tbody class="divide-y divide-gray-700">
-            <tr>
-            <td class="p-2">Paper Trading</td>
-            <td class="p-2">Validate 2 patterns</td>
-            <td class="p-2">50–100 per pattern</td>
-            </tr>
-            <tr>
-            <td class="p-2">Analysis</td>
-            <td class="p-2">Identify edge</td>
-            <td class="p-2">N/A</td>
-            </tr>
-            <tr>
-            <td class="p-2">Prop Micro Account</td>
-            <td class="p-2">First 1–2 months live</td>
-            <td class="p-2">20–50 trades</td>
-            </tr>
-            <tr>
-            <td class="p-2">Scaling</td>
-            <td class="p-2">Use proven edge on full allocation</td>
-            <td class="p-2">50–100 trades per pattern</td>
-            </tr>
-            <tr>
-            <td class="p-2">Goal</td>
-            <td class="p-2">~ $250k annualized payouts</td>
-            <td class="p-2">2–3 years of disciplined growth</td>
-            </tr>
-        </tbody>
-        </table>
-    </section>
-    </div>
-
+  </div>
 </template>
+
+<style>
+/* Optional: subtle floating animation for roadmap steps */
+.roadmap-step:hover {
+  box-shadow: 0 20px 40px rgba(124, 58, 237, 0.4);
+  transform: translateY(-4px) scale(1.02);
+  transition: all 0.3s ease-in-out;
+}
+</style>

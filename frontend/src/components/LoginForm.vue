@@ -22,14 +22,14 @@ const submitForm = async () => {
 </script>
 
 <template>
-  <div class="max-w-2xl mx-auto p-6 bg-gray-800 text-white rounded-2xl shadow-lg">
-    <form action="" @submit.prevent="submitForm" class="space-y-4">
-        <input type="text" v-model="form.username" value="admin" placeholder="Username" class="w-full p-2 bg-gray-700 border border-gray-600 rounded" />
-        <input type="password" v-model="form.password" placeholder="Password" class="w-full p-2 bg-gray-700 border border-gray-600 rounded" />
-    </form>
-      <button class="mt-4 px-4 py-2 bg-purple-600 hover:bg-purple-700 rounded-xl shadow"
-              @click="submitForm">
-        Login
-      </button>
-  </div>
+  <form @submit.prevent="submitForm" class="space-y-4 w-3xl">
+    <input type="text" v-model="form.username" placeholder="Username"
+      class="w-full p-3 bg-slate-700 border border-gray-600 rounded-xl text-white placeholder-gray-400 focus:ring-2 focus:ring-indigo-500 transition" />
+    <input type="password" v-model="form.password" placeholder="Password"
+      class="w-full p-3 bg-slate-700 border border-gray-600 rounded-xl text-white placeholder-gray-400 focus:ring-2 focus:ring-indigo-500 transition" />
+    <button type="submit"
+      class="w-full mt-2 px-4 py-3 bg-gradient-to-r from-indigo-500 via-pink-500 to-purple-600 rounded-xl font-semibold text-lg shadow-lg hover:scale-105 transition-transform">
+      Login
+    </button>
+  </form>
 </template>

@@ -2,6 +2,7 @@
 import { ref, watch, onMounted } from "vue"
 import Multiselect from "vue-multiselect"
 import { selectedAccount } from "../stores/account"
+import { token } from "../stores/auth"
 
 const props = defineProps({
   trade: Object
@@ -36,8 +37,7 @@ watch(
   () => props.trade,
   async (newTrade) => {
     if (newTrade?.id) {
-      const token = localStorage.getItem("token")
-      const headers = { "Content-Type": "application/json", "Authorization": `Bearer ${token}` }
+      const headers = { "Content-Type": "application/json", "Authorization": `Bearer ${token.value}` }
 
       // Fetch full trade with signals + executions
       const res = await fetch(`http://localhost:3000/api/trades/${newTrade.id}`, { headers })

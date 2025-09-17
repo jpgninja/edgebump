@@ -1,13 +1,13 @@
 <script setup>
-    import AddPatternButton from "../components/AddPatternButton.vue";
-    import PatternsTable from "../components/PatternsTable.vue";
+    import AddButton from "../components/buttons/AddButton.vue";
+    import PatternsTable from "../components/tables/PatternsTable.vue";
 </script>
 
 <template>
-    <div class="max-w-3xl mx-auto p-6">
+    <div class="w-full max-w-[90rem] mx-auto p-6 ">
         <h1 class="text-3xl text-white font-bold mb-6">
             Patterns
-            <AddPatternButton />
+            <AddButton routeName="pattern_create" label="Add Pattern" />
         </h1>
         <PatternsTable />
     </div>
