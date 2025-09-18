@@ -20,7 +20,7 @@
     <div class="max-w-3xl mx-auto p-6">
         <h1 class="text-3xl text-white font-bold mb-6">
             {{ pattern.name }}
-            <EditControlButton />
+            <EditControlButton :id="pattern.id" />
         </h1>
 
         <p>{{ pattern.description }}</p>

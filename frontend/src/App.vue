@@ -1,7 +1,7 @@
 <script setup>
   import { ref, onMounted } from "vue"
   import { RouterLink, RouterView } from "vue-router"
-  import { isLoggedIn, token } from "./stores/auth"
+  import { isLoggedIn, isSuperUser, token } from "./stores/auth"
   import { selectedAccount } from "./stores/account"
   import { selectAccount } from "./stores/account"
   
@@ -20,6 +20,11 @@
     { to: "/patterns", label: "Patterns" },
     { to: "/accounts", label: "Accounts" }
   ]
+
+  // Super Admin.
+  if ( isSuperUser.value ) {
+    userLinks.push( { to: "/users", label: "Users" } )
+  }
   
   const links = ref([])
   if (isLoggedIn.value) {
@@ -27,7 +32,6 @@
   } else {
     links.value = guestLinks
   }
-
   const accounts = ref([])
 
   onMounted(async () => {

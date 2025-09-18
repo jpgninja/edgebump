@@ -1,5 +1,9 @@
 <script setup>
 import { ref, watch, onMounted } from "vue"
+import { useRouter, useRoute } from 'vue-router'
+
+const router = useRouter()
+const route = useRoute()
 
 const props = defineProps({
   account: {
@@ -30,13 +34,6 @@ onMounted(async () => {
     "Authorization": `Bearer ${token}`
   }
 
-  // Load accounts
-  const aRes = await fetch("http://localhost:3000/api/accounts", { headers })
-  accounts.value = await aRes.json()
-
-  // Load brokers (for dropdown)
-//   const bRes = await fetch("http://localhost:3000/api/brokers", { headers })
-//   brokers.value = await bRes.json()
   brokers.value = [
     { id: 1, name: 'Interactive Brokers' },
     { id: 2, name: 'Think Or Swim' },
@@ -62,6 +59,9 @@ const submitForm = async () => {
 
   emit("saved")
 }
+
+// Cancel
+const cancelEditHandler = () => router.push({ name: 'accounts' })
 </script>
 
 <template>
@@ -149,10 +149,7 @@ const submitForm = async () => {
         class="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-sm rounded-lg shadow">
         Save Account
       </button>
-      <button type="button" class="px-4 ml-4 py-2 bg-red-600 hover:bg-red-700 rounded-md text-sm shadow"
-              @click="$emit('close')">
-        Cancel
-      </button>
+      <button type="button" @click="cancelEditHandler" class="ml-4 px-4 py-2 bg-gray-600 hover:bg-gray-700 rounded-xl shadow">Cancel</button>
     </form>
   </div>
 </template>

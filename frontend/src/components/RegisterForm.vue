@@ -1,5 +1,6 @@
 <script setup>
 import { ref, onMounted } from "vue"
+import { token } from "../stores/auth.js";
 
 const form = ref({
   pattern: "",
@@ -12,10 +13,11 @@ const form = ref({
   signals: [] // store selected signal IDs
 })
 
+const headers = { "Content-Type": "application/json", "Authorization": `Bearer ${token.value}` }
 const submitForm = async () => {
   await fetch(`http://localhost:3000/auth/register`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: headers,
     body: JSON.stringify(form.value)
   })
   console.log("User registered")

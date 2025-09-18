@@ -1,4 +1,5 @@
 import express from "express"
+import { enrich } from "../utils/trades.js";
 
 export default (dbPromise) => {
   const router = express.Router()
@@ -8,23 +9,31 @@ export default (dbPromise) => {
     try {
       const db = await dbPromise
       const userId = req.user?.id
-
       if (!userId) return res.status(401).json({ error: "Unauthorized" })
 
-      // Fetch summarized trades
+      // 1. Fetch trades
       const trades = await db.all(
-        `SELECT * FROM v_trade_summary
-        WHERE user_id=?
+        `SELECT * FROM trades
+        WHERE user_id = ?
         ORDER BY created_at DESC`,
         [userId]
       )
 
       if (!trades || trades.length === 0) return res.json([])
 
-      // Fetch signals
       const ids = trades.map(t => t.id)
-      const placeholders = ids.map(() => "?").join(',')
-      const tradeSignals = await db.all(
+      const placeholders = ids.map(() => "?").join(",")
+
+      // 2. Fetch executions
+      const executions = await db.all(
+        `SELECT * FROM trade_executions
+        WHERE trade_id IN (${placeholders})
+        ORDER BY created_at ASC`,
+        ids
+      )
+
+      // 3. Fetch signals
+      const signals = await db.all(
         `SELECT ts.trade_id, ts.type, ts."order", ts.signal_value,
                 s.id AS signal_id, s.name AS signal_name
         FROM trade_signals ts
@@ -34,51 +43,50 @@ export default (dbPromise) => {
         ids
       )
 
-      // Map signals to trades
-      const tradeMap = new Map()
-      trades.forEach(t => tradeMap.set(t.id, { ...t, signals: [] }))
-      for (const sig of tradeSignals) {
-        const entry = tradeMap.get(sig.trade_id)
-        if (entry) entry.signals.push({
-          id: sig.signal_id,
-          name: sig.signal_name,
-          value: sig.signal_value,
-          type: sig.type,
-          order: sig.order
-        })
-      }
+      // 4. Enrich trades with executions + signals
+      const enrichedTrades = enrich(trades, executions, signals)
 
-      res.json(Array.from(tradeMap.values()))
+      res.json(enrichedTrades)
     } catch (err) {
       console.error("GET /api/trades error:", err)
       res.status(500).json({ error: "Failed to load trades" })
     }
   })
+
 
   // Select a specific trade by ID for the authenticated user.
   router.get("/:id", async (req, res) => {
     try {
-      const db = await dbPromise
-      const userId = req.user?.id
-      const tradeId = parseInt(req.params.id)
+      const db = await dbPromise;
+      const userId = req.user?.id;
+      const tradeId = parseInt(req.params.id);
 
-      if (!userId) return res.status(401).json({ error: "Unauthorized" })
-      if (!tradeId) return res.status(400).json({ error: "account_id is required" })
+      if (!userId) return res.status(401).json({ error: "Unauthorized" });
+      if (!tradeId) return res.status(400).json({ error: "trade_id is required" });
 
-      // Fetch summarized trades
+      // 1. Fetch the trade
       const trades = await db.all(
-        `SELECT * FROM v_trade_summary
-        WHERE user_id=? AND id=?
+        `SELECT * FROM trades
+        WHERE user_id = ? AND id = ?
         ORDER BY created_at DESC`,
         [userId, tradeId]
-      )
+      );
 
-      if (!trades || trades.length === 0) return res.json([])
+      if (!trades || trades.length === 0) return res.json([]);
 
-      // Fetch signals
-      const ids = trades.map(t => t.id)
-      const placeholders = ids.map(() => "?").join(',')
-      const tradeSignals = await db.all(
+      const ids = trades.map((t) => t.id);
+      const placeholders = ids.map(() => "?").join(",");
+
+      // 2. Fetch executions
+      const executions = await db.all(
+        `SELECT * FROM trade_executions
+        WHERE trade_id IN (${placeholders})
+        ORDER BY created_at ASC`,
+        ids
+      );
+
+      // 3. Fetch signals
+      const signals = await db.all(
         `SELECT ts.trade_id, ts.type, ts."order", ts.signal_value,
                 s.id AS signal_id, s.name AS signal_name
         FROM trade_signals ts
@@ -86,39 +94,18 @@ export default (dbPromise) => {
         WHERE ts.trade_id IN (${placeholders})
         ORDER BY ts.trade_id, ts."order" ASC`,
         ids
-      )
+      );
 
-      // Map signals to trades
-      const tradeMap = new Map()
-      trades.forEach(t => tradeMap.set(t.id, { ...t, signals: [] }))
-      for (const sig of tradeSignals) {
-        const entry = tradeMap.get(sig.trade_id)
-        if (entry) entry.signals.push({
-          id: sig.signal_id,
-          name: sig.signal_name,
-          value: sig.signal_value,
-          type: sig.type,
-          order: sig.order
-        })
-      }
+      // 4. Enrich
+      const enrichedTrades = enrich(trades, executions, signals);
 
-      // Fetch executions
-      const tradeExecutions = await db.all(
-        `SELECT * FROM trade_executions
-        WHERE trade_id=?
-        ORDER BY created_at ASC`,
-        [tradeId]
-      )
-
-      // Map executions to trades
-      tradeMap.get(tradeId).executions = tradeExecutions
-
-      res.json(Array.from(tradeMap.values()))
+      res.json(enrichedTrades[0]); // only one trade expected
     } catch (err) {
-      console.error("GET /api/trades error:", err)
-      res.status(500).json({ error: "Failed to load trades" })
+      console.error("GET /api/trades/:id error:", err);
+      res.status(500).json({ error: "Failed to load trade" });
     }
-  })
+  });
+
 
   // Create or update a trade.
   router.post("/:id", async (req, res) => {

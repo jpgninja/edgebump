@@ -60,5 +60,35 @@ export default (dbPromise) => {
         }
     })
 
+    router.post("/register", async (req, res) => {
+        const { username, password, email } = req.body
+        try {
+            const db = await dbPromise
+
+            // check if username already exists
+            const existing = await db.get("SELECT id FROM users WHERE username = ?", username)
+            if (existing) {
+                return res.status(409).json({ error: "Username already taken" })
+            }
+
+            // hash password
+            const saltRounds = 10
+            const password_hash = await bcrypt.hash(password, saltRounds)
+
+            // insert user
+            const result = await db.run(
+                "INSERT INTO users (username, password_hash, email, user_type) VALUES (?, ?, ?, ?)",
+                [username, password_hash, email || null, "user"]
+            )
+
+            // generate token
+            const token = jwt.sign({ id: result.lastID, type: "user" }, JWT_SECRET, { expiresIn: "12h" })
+            return res.json({ token })
+        } catch (err) {
+            console.error(err)
+            return res.status(500).json({ error: "Internal server error" })
+        }
+    })
+
     return router
 }

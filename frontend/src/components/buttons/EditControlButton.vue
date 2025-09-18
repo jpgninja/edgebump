@@ -13,11 +13,11 @@ const props = defineProps({
   },
   label: {
     type: String,
-    default: 'Edit'
+    default: '✏️'
   },
   classes: {
     type: String,
-    default: 'px-3 py-2 bg-blue-600 rounded-sm text-xs text-white font-semibold shadow hover:scale-105 transition-transform'
+    default: 'p-2 bg-gray-600 rounded-sm text-xs text-gray-100 font-semibold shadow hover:bg-gray-500'
   }
 })
 
