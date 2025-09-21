@@ -19,6 +19,7 @@ import patternsRoutes from "./routes/patterns.js"
 import signalsRoutes from "./routes/signals.js"
 import accountsRoutes from "./routes/accounts.js"
 import usersRoutes from "./routes/users.js"
+import rulesRoutes from "./routes/rules.js"
 import authRoutes from "./routes/auth.js"
 import { jwtAuth } from "./middleware/auth.js"
 
@@ -40,6 +41,7 @@ app.use("/api/patterns", jwtAuth, patternsRoutes(dbPromise))
 app.use("/api/signals", jwtAuth, signalsRoutes(dbPromise))
 app.use("/api/accounts", jwtAuth, accountsRoutes(dbPromise))
 app.use("/api/users", jwtAuth, usersRoutes(dbPromise))
+app.use("/api/rules", jwtAuth, rulesRoutes(dbPromise))
 
 app.use("/auth", authRoutes(dbPromise))
 

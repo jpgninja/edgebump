@@ -67,29 +67,22 @@ export function enrich(trades, executions, signals) {
     const avgExit = weightedAvg(exits, trade.direction);
 
     // Realized PnL = sum over executions
+    // Realized PnL = sum over pnl of all executions
     const realizedPnl = tradeExecutions.reduce((sum, e) => {
-        if (!e.exit_price || !e.entry_price || !e.amount) return sum;
-
-        const diff =
-            e.direction === "long"
-            ? e.exit_price - e.entry_price
-            : e.entry_price - e.exit_price;
-
-        return sum + diff * e.amount;
-    }, 0);
+      return sum + (e.pnl || 0)
+    }, 0)
 
     // Trade status based on open position
     const status = netPos === 0 ? "closed" : "active";
 
     // Total position size (entry value in $ terms)
-    const totalPositionSize = tradeExecutions.reduce(
-    (sum, e) => sum + (e.entry_price || 0) * (e.amount || 0),
-    0
-    );
-    
+    const totalPositionSize = entries.reduce(
+      (sum, e) => sum + (e.amount || 0),
+      0
+    )
+
     // Total position value in dollars (based on avg entry)
-    const totalPositionValue =
-    avgEntry && totalPositionSize ? avgEntry * totalPositionSize : null;
+    const totalPositionValue = avgEntry && totalPositionSize ? avgEntry * totalPositionSize : null;
 
     // ROI = Realized PnL / Total Position Size
     const roi = totalPositionSize > 0 ? realizedPnl / totalPositionSize : 0;

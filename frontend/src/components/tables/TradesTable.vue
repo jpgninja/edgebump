@@ -1,5 +1,4 @@
 <script setup>
-import { ref, watch } from "vue";
 import { formatDate } from "../../utils/date.js";
 import { token } from "../../stores/auth.js";
 
@@ -15,40 +14,28 @@ const props = defineProps({
   }
 });
 
-const emits = defineEmits(["edit", "delete"]);
-
-// Local reactive copy for manipulation
-const localTrades = ref([...props.trades]);
-
-// Keep local copy in sync when parent updates prop
-watch(
-  () => props.trades,
-  (newTrades) => {
-    localTrades.value = [...newTrades];
-  },
-  { deep: true }
-);
+const emit = defineEmits(["edit", "delete"]);
 
 const deleteTrade = async (id) => {
-  const res = await fetch(`http://localhost:3000/api/trades/${id}`, {
-    method: "DELETE",
-    headers: {
-      "Content-Type": "application/json",
-      "Authorization": `Bearer ${token.value}`
-    }
-  });
+  try {
+    const res = await fetch(`http://localhost:3000/api/trades/${id}`, {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token.value}`
+      }
+    });
 
-  if (res.ok) {
-    localTrades.value = localTrades.value.filter((p) => p.id !== id);
-    emits("delete", id);
-  } else {
-    console.error("Failed to delete trade");
+    if (!res.ok) throw new Error("Failed to delete trade");
+    emit("delete", id); // let parent update trades
+  } catch (err) {
+    console.error(err.message);
   }
 };
 </script>
 
 <template>
-  <div v-if="localTrades.length" class="w-full max-w-[90rem] mx-auto p-6 bg-slate-800/60 backdrop-blur-sm border border-white/10 rounded-3xl shadow-lg overflow-hidden float hover:scale-[1.02] transition-transform">
+  <div v-if="trades.length" class="w-full max-w-[90rem] mx-auto p-6 bg-slate-800/60 backdrop-blur-sm border border-white/10 rounded-3xl shadow-lg overflow-hidden float hover:scale-[1.02] transition-transform">
     <table class="w-full table-auto text-white">
       <thead class="bg-slate-700/50 backdrop-blur-sm rounded-xl">
         <tr>
@@ -65,12 +52,12 @@ const deleteTrade = async (id) => {
       </thead>
 
       <tbody>
-        <tr v-for="trade in localTrades" :key="trade.id" class="hover:bg-slate-700/40 transition-colors rounded-lg">
+        <tr v-for="trade in trades" :key="trade.id" class="hover:bg-slate-700/40 transition-colors rounded-lg">
           <td class="p-3 border-b border-white/10">{{ formatDate(trade.created_at) }}</td>
           <td class="p-3 border-b border-white/10 font-medium">{{ trade.pattern_name }}</td>
           <td class="p-3 border-b border-white/10">{{ trade.ticker.toUpperCase() }}</td>
           <td class="p-3 border-b border-white/10 capitalize">
-            <span :class="trade.direction === 'long' ? 'text-green-400' : 'text-red-400'">{{ trade.direction }}</span>
+            <span :class="trade.direction === 'long' ? 'text-green-300' : 'text-red-300'">{{ trade.direction }}</span>
           </td>
           <td class="p-3 border-b border-white/10">{{ trade.avg_entry }}</td>
           <td class="p-3 border-b border-white/10">1.4R</td>

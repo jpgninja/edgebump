@@ -4,6 +4,7 @@
     import UsersTable from "../components/tables/UsersTable.vue";
     import { token } from "../stores/auth.js";
 
+
     // Users init.
     const users = ref([])
 
@@ -11,7 +12,7 @@
     const fetchUsers = async () => {
         const headers = {
             "Content-Type": "application/json",
-            "Authorization": `Bearer ${token}`
+            "Authorization": `Bearer ${token.value}`
         }
 
         const res = await fetch("http://localhost:3000/api/users", { headers })
@@ -41,12 +42,9 @@
 <template>
     <div class="w-full mx-auto p-6">
         <h2 class="text-3xl text-white font-bold mb-6 mt-12">
-            Open Users
+            Users
             <AddButton routeName="user_create" label="Add User" />
         </h2>
-        <UsersTable :users="users" @edit="onEdit" @delete="onDelete"/>
-
-        <h2 class="text-3xl text-white font-bold mb-6 mt-12">Recent Users</h2>
         <UsersTable :users="users" @edit="onEdit" @delete="onDelete"/>
     </div>
 </template>

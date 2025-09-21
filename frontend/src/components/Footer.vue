@@ -49,7 +49,7 @@ onMounted(() => {
       </nav>
 
       <!-- Scroll Reward / Easter Egg -->
-      <div v-if="showReward" class="text-green-400 text-sm font-semibold animate-pulse">
+      <div v-if="false && showReward" class="text-green-400 text-sm font-semibold animate-pulse">
         🎉 You made it to the bottom! Keep exploring.
       </div>
 

@@ -1,9 +1,8 @@
 <script setup>
-import { ref, onMounted, computed } from "vue"
+import { ref, onMounted, computed, nextTick } from "vue"
 import { token } from '../stores/auth.js'
-import Multiselect from 'vue-multiselect'
-import draggable from 'vuedraggable'
 import { useRouter, useRoute } from 'vue-router'
+import RulesList from "./RulesList.vue"
 
 const router = useRouter()
 const route = useRoute()
@@ -17,23 +16,21 @@ const form = ref({
   timeframe_medium: "",
   timeframe_low: ""
 })
-const rules = ref([])
-const allSignals = ref([])
-const newRule = ref(null)
-const timeframes = ["1M","1w","1d","4h","1h","30m","15m","10m","5m","1m"];
-
+const rules = ref([""])
+const ruleSuggestions = ref([])
+const timeframes = ["1M","1w","1d","4h","1h","30m","15m","10m","5m","1m"]
 
 const mediumOptions = computed(() => {
   if (!form.value.timeframe_high) return timeframes
-  return timeframes.filter(tf => timeframes.indexOf(tf) <= timeframes.indexOf(form.value.timeframe_high))
+  return timeframes.filter(tf => timeframes.indexOf(tf) > timeframes.indexOf(form.value.timeframe_high))
 })
 
 const lowOptions = computed(() => {
   if (!form.value.timeframe_medium) return timeframes
-  return timeframes.filter(tf => timeframes.indexOf(tf) <= timeframes.indexOf(form.value.timeframe_medium))
+  return timeframes.filter(tf => timeframes.indexOf(tf) > timeframes.indexOf(form.value.timeframe_medium))
 })
 
-// Fetch pattern and signals on mount
+// Fetch pattern and autocomplete on mount
 onMounted(async () => {
   const patternId = route.params.id
   if (patternId) {
@@ -50,27 +47,18 @@ onMounted(async () => {
         timeframe_medium: data.timeframe_medium ?? "",
         timeframe_low: data.timeframe_low ?? ""
       }
-      rules.value = (data.rules ?? []).map(r => ({
-        id: r.signal_id,
-        name: r.signal_name,
-        type: r.type,
-        order: r.order
-      }))
+      rules.value = (data.rules ?? []).map(r => r) // array of strings
+      if (rules.value.length === 0) rules.value = [""]
     }
   }
 
-  // Fetch all signals
-  allSignals.value = await (await fetch("http://localhost:3000/api/signals", {
+  // Fetch all autocomplete rules
+  const res = await fetch("http://localhost:3000/api/rules/autocomplete", {
     headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token.value}` }
-  })).json()
+  })
+  const data = await res.json()
+  ruleSuggestions.value = data.map(r => r.name)
 })
-
-const addRule = (signal) => {
-  if (!rules.value.find(r => r.id === signal.id)) {
-    rules.value.push({ ...signal, order: rules.value.length })
-  }
-  newRule.value = null
-}
 
 const submitForm = async () => {
   try {
@@ -86,7 +74,7 @@ const submitForm = async () => {
       timeframe_high: form.value.timeframe_high,
       timeframe_medium: form.value.timeframe_medium,
       timeframe_low: form.value.timeframe_low,
-      rules: rules.value.map((r,i) => ({ signal_id: r.id, type: r.type ?? "entry", order: i }))
+      rules: rules.value.map(r => ({ name: r })) // send as array of {name}
     }
 
     const res = await fetch(url, {
@@ -99,15 +87,15 @@ const submitForm = async () => {
     if (data.error) throw new Error("Failed to save pattern: " + data.error)
     if (!form.value.id && data.id) form.value.id = data.id
 
-    router.push({ name: 'patterns' }) // redirect after save
+    router.push({ name: 'patterns' })
   } catch (err) {
     console.error(err)
   }
 }
 
-// Cancel
 const cancelEditHandler = () => router.push({ name: 'patterns' })
 </script>
+
 
 <template>
   <div class="max-w-4xl mx-auto p-6 bg-gray-800 text-white rounded-2xl shadow-lg">
@@ -147,7 +135,7 @@ const cancelEditHandler = () => router.push({ name: 'patterns' })
         <label class="block text-sm mb-1">Description</label>
         <textarea v-model="form.description" rows="12" class="w-full p-2 rounded-lg bg-gray-700 border border-gray-600"></textarea>
       </div>
-
+<!-- 
       <div class="mt-4">
         <label class="block text-sm mb-1">Pattern Rules</label>
         <draggable v-model="rules" item-key="id" class="flex flex-wrap gap-2">
@@ -155,8 +143,15 @@ const cancelEditHandler = () => router.push({ name: 'patterns' })
             <span class="px-2 py-1 bg-blue-600 rounded-md cursor-move text-white">{{ element.name }}</span>
           </template>
         </draggable>
-
-        <multiselect v-model="newRule" :options="allSignals" label="name" track-by="id" placeholder="Add confluence" @select="addRule" class="mt-2 w-full border-none text-sm" />
+      </div>
+       -->
+      <div class="mt-4">
+        <label class="block text-sm mb-1">Pattern Rules</label>
+        <RulesList
+          v-model="rules"
+          :suggestions="ruleSuggestions"
+          @submit-form="submitForm"
+        />
       </div>
 
       <button type="submit" class="px-4 py-2 bg-purple-600 hover:bg-purple-700 rounded-xl shadow">Save Pattern</button>

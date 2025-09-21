@@ -1,54 +1,52 @@
 <script setup>
-  import { ref, onMounted } from "vue"
-  import { RouterLink, RouterView } from "vue-router"
-  import { isLoggedIn, isSuperUser, token } from "./stores/auth"
-  import { selectedAccount } from "./stores/account"
-  import { selectAccount } from "./stores/account"
-  
-  import Footer from "./components/Footer.vue"
-   
-  const guestLinks = [
-    { to: "/learn", label: "Learn" },
-    { to: "/learn/edge-roadmap", label: "Roadmap" },
-    { to: "/login", label: "Login" },
-    { to: "/register", label: "Register" }
-  ]
-  
-  const userLinks = [
-    { to: "/learn", label: "Learn" },
-    { to: "/trades", label: "Trades" },
-    { to: "/patterns", label: "Patterns" },
-    { to: "/accounts", label: "Accounts" }
-  ]
+import { ref, computed, onMounted, watch } from "vue"
+import { RouterLink, RouterView } from "vue-router"
+import { isLoggedIn, isSuperUser, token } from "./stores/auth"
+import { selectedAccount, selectedAccountId, accounts, selectAccount } from "./stores/account"
+import Footer from "./components/Footer.vue"
 
-  // Super Admin.
-  if ( isSuperUser.value ) {
-    userLinks.push( { to: "/users", label: "Users" } )
+// Nav links
+const guestLinks = [
+  { to: "/learn", label: "Learn" },
+  { to: "/learn/edge-roadmap", label: "Roadmap" },
+  { to: "/login", label: "Login" },
+  { to: "/register", label: "Register" }
+]
+
+const userLinks = [
+  { to: "/learn", label: "Learn" },
+  { to: "/trades", label: "Trades" },
+  { to: "/patterns", label: "Patterns" },
+  { to: "/accounts", label: "Accounts" }
+]
+
+// Reactive links based on login + superuser
+const links = computed(() => {
+  if (!isLoggedIn.value) return guestLinks
+  return isSuperUser.value ? [...userLinks, { to: "/users", label: "Users" }] : userLinks
+})
+
+
+// Fetch accounts when logged in
+const fetchAccounts = async () => {
+  if (!isLoggedIn.value) return
+  const headers = {
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${token.value}`
   }
-  
-  const links = ref([])
-  if (isLoggedIn.value) {
-    links.value = userLinks
-  } else {
-    links.value = guestLinks
+  const res = await fetch("http://localhost:3000/api/accounts", { headers })
+  accounts.value = await res.json()
+
+  // Auto-select first account if none selected
+  if (!selectedAccount.value && accounts.value.length) {
+    selectedAccountId.value = accounts.value[0].id
   }
-  const accounts = ref([])
+}
 
-  onMounted(async () => {
-    await fetchAccounts()
-  })
+onMounted(fetchAccounts)
 
-  const fetchAccounts = async () => {
-    const headers = {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${token.value}`
-    }
-
-    if (isLoggedIn.value) {
-      const res = await fetch("http://localhost:3000/api/accounts", { headers })
-      accounts.value = await res.json()
-    }
-  }
+// Refetch accounts if token changes (login/logout)
+watch(token, () => fetchAccounts())
 </script>
 
 <template>
@@ -64,8 +62,7 @@
     <header class="relative z-10 bg-slate-800/60 backdrop-blur-lg border-b border-white/10 shadow-md p-4 flex flex-col md:flex-row justify-between items-center gap-4">
       <!-- Logo -->
       <h1 class="text-2xl md:text-3xl font-extrabold gradient-text">
-        <RouterLink v-if="!isLoggedIn" to="/" class="hover:scale-105 transition-transform">📈 EdgeBump</RouterLink>
-        <RouterLink v-else to="/dashboard" class="hover:scale-105 transition-transform">📈 EdgeBump</RouterLink>
+        <RouterLink :to="isLoggedIn ? '/dashboard' : '/'" class="hover:scale-105 transition-transform">📈 EdgeBump</RouterLink>
       </h1>
 
       <!-- Nav + Accounts -->
@@ -74,12 +71,12 @@
         <select
           v-if="isLoggedIn"
           class="p-2 rounded-lg bg-slate-700 border border-gray-600 text-white hover:scale-105 transition-transform"
-          v-model="selectedAccount.id"
-          @change="selectAccount(accounts.find(a => a.id === selectedAccount.id))"
+          v-model="selectedAccountId"
         >
           <option disabled value="">Select Account</option>
-          <option v-for="a in accounts" :key="a.id" :value="a.id" :selected="a.id === selectedAccount.id">{{ a.name }}</option>
+          <option v-for="a in accounts" :key="a.id" :value="a.id">{{ a.name }}</option>
         </select>
+
         <nav class="flex items-center gap-4 flex-wrap">
           <RouterLink
             v-for="link in links"
@@ -99,12 +96,9 @@
           >
             Logout
           </RouterLink>
-
         </nav>
-
       </div>
     </header>
-
 
     <!-- Main content -->
     <main class="flex-1 p-6 relative z-10">
@@ -117,7 +111,6 @@
 </template>
 
 <style>
-/* Optional gradient text helper */
 .gradient-text {
   background: linear-gradient(to right, #8b5cf6, #ec4899, #6366f1);
   -webkit-background-clip: text;

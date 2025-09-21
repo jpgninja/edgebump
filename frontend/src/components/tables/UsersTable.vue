@@ -2,6 +2,7 @@
 import EditControlButton from "../buttons/EditControlButton.vue";
 import DeleteControlButton from "../buttons/DeleteControlButton.vue";
 import AddButton from "../buttons/AddButton.vue";
+import { formatDate } from "../../utils/date.js";
 
 const props = defineProps({
   users: {
@@ -18,8 +19,9 @@ const emits = defineEmits(["edit", "delete"]);
     <table class="w-full table-auto text-white">
       <thead class="bg-slate-700/50 backdrop-blur-sm rounded-xl">
         <tr>
-          <th class="text-left p-3 border-b border-white/10">Date</th>
-
+          <th class="text-left p-3 border-b border-white/10">Member Since</th>
+          <th class="text-left p-3 border-b border-white/10">Username</th>
+          <th class="text-left p-3 border-b border-white/10">Email</th>
           <th class="text-left p-3 border-b border-white/10">&nbsp;</th>
         </tr>
       </thead>
@@ -30,7 +32,9 @@ const emits = defineEmits(["edit", "delete"]);
           :key="user.id"
           class="hover:bg-slate-700/40 transition-colors rounded-lg"
         >
-          <td class="p-3 border-b border-white/10">{{ user.date || 'N/A' }}</td>
+          <td class="p-3 border-b border-white/10">{{ formatDate(user.created_at) }}</td>
+          <td class="p-3 border-b border-white/10">{{ user.username }}</td>
+          <td class="p-3 border-b border-white/10">{{ user.email }}</td>
           <td class="p-3 border-b border-white/10 align-middle">
             <div class="flex justify-center items-center gap-2">
               <EditControlButton :id="user.id" routeName="user_edit" />
@@ -43,6 +47,6 @@ const emits = defineEmits(["edit", "delete"]);
   </div>
   <div v-else class="text-center py-6">
     No Users.
-    <AddButton routeName="user_create" label="Add Your First User"/>
+    <AddButton routeName="user_create" label="Add User"/>
   </div>
 </template>

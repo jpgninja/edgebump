@@ -111,7 +111,6 @@ const router = createRouter({
     routes
 })
 
-// Navigation guard for protected routes
 router.beforeEach((to, from, next) => {
   if (to.meta.requiresAuth && !isLoggedIn.value) {
     return next("/login")
@@ -121,12 +120,14 @@ router.beforeEach((to, from, next) => {
     return next("/dashboard")
   }
 
-  if (to.meta.requiresSuperUser && !isLoggedIn.value) {
-    return next("/login")
+  // Superuser guard
+  if (to.meta.requiresSuperUser && !isSuperUser.value) {
+    return next("/dashboard") // redirect normal users
   }
 
   next()
 })
+
 
 
 export default router

@@ -46,7 +46,13 @@ onMounted(fetchTrades);
   <div class="w-full mx-auto p-6">
     <h2 class="text-3xl text-white font-bold mb-6 mt-12">
       Open Positions
-      <AddButton routeName="trade_create" label="Add Trade" />
+      <AddButton routeName="trade_create" label="Plan Trade" />
+    </h2>
+    <TradesTable :trades="openTrades" @edit="onEdit" @delete="onDelete"/>
+
+    <h2 class="text-3xl text-white font-bold mb-6 mt-12">
+      Setups
+      <AddButton routeName="trade_create" label="Plan Trade" />
     </h2>
     <TradesTable :trades="openTrades" @edit="onEdit" @delete="onDelete"/>
 
