@@ -44,9 +44,16 @@ const avgEntry = computed(() => {
     <p><strong>Pattern:</strong> {{ pattern }}</p>
     <p><strong>Direction:</strong> {{ direction }}</p>
     <p><strong>Entry / SL / TP:</strong> {{ entryPlan }} / {{ stopLoss }} / {{ takeProfit }}</p>
+    <p><strong>Position Size:</strong> {{ potentialLoss }}</p>
     <p><strong>Risk to Reward:</strong> {{ rrRatio }}R</p>
     <p><strong>Risk:</strong> -{{ potentialLoss }}</p>
     <p><strong>Reward:</strong> {{ potentialGain }}</p>
+    <p><strong>Account Size:</strong> {{ potentialLoss }}</p>
+    <p><strong>Account Risk %:</strong> {{ potentialLoss }}</p>
+    <p><strong>Account Max Trade Position:</strong> {{ potentialLoss }}</p>
+    <p><strong>Account Liquidation Risk Rate:</strong> 100 Trades</p>
+    <p><strong>Trade Risk % of Account:</strong> {{ potentialLoss }}</p>
+    <p><strong>PnL:</strong> {{ pnl }}</p>
 
     <div>
       <h3>Executions</h3>

@@ -135,16 +135,7 @@ const cancelEditHandler = () => router.push({ name: 'patterns' })
         <label class="block text-sm mb-1">Description</label>
         <textarea v-model="form.description" rows="12" class="w-full p-2 rounded-lg bg-gray-700 border border-gray-600"></textarea>
       </div>
-<!-- 
-      <div class="mt-4">
-        <label class="block text-sm mb-1">Pattern Rules</label>
-        <draggable v-model="rules" item-key="id" class="flex flex-wrap gap-2">
-          <template #item="{ element }">
-            <span class="px-2 py-1 bg-blue-600 rounded-md cursor-move text-white">{{ element.name }}</span>
-          </template>
-        </draggable>
-      </div>
-       -->
+
       <div class="mt-4">
         <label class="block text-sm mb-1">Pattern Rules</label>
         <RulesList
